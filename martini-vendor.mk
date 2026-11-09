@@ -4,10 +4,10 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-# Nokia Lumia 1520 (martini) proprietary files.
+# Nokia Lumia 930 (martini) proprietary files.
 #
-# 1. Files of the 1520 itself (firmware, Wi-Fi config, audio calibration)
-#    come from the user's own phone. extract-local.sh copies them into
+# 1. Files of the 930 itself (firmware, Wi-Fi config, audio calibration)
+#    come from the user's own phone (its Windows MainOS). extract-local.sh copies them into
 #    proprietary-local/, which is ignored by git: they are never committed.
 #    The tree mirrors the install paths:
 #      proprietary-local/vendor/...  -> $(TARGET_COPY_OUT_VENDOR)/...
@@ -18,7 +18,7 @@
 #
 # 2. Generic MSM8974 Android blobs (Adreno, QMI/RIL, location, ...) come
 #    from TheMuppets' proprietary_vendor_oppo (msm8974-common), minus the
-#    OnePlus One firmware that does not belong on the 1520.
+#    OnePlus One firmware that does not belong on the 930.
 
 MARTINI_LOCAL_PATH := vendor/nokia/martini/proprietary-local
 
@@ -35,7 +35,7 @@ PRODUCT_COPY_FILES += \
         $(f):$(TARGET_COPY_OUT_SYSTEM)/$(patsubst $(MARTINI_LOCAL_PATH)/system/%,%,$(f)))
 
 # Generic MSM8974 blobs. Venus (video codec) firmware of the OnePlus One is
-# dropped: the 1520 uses its own qcvss8974 image (venus.* above).
+# dropped: the 930 uses its own qcvss8974 image (venus.* above).
 include vendor/oppo/msm8974-common/msm8974-common-vendor.mk
 
 MARTINI_OPPO_FW := vendor/oppo/msm8974-common/proprietary/vendor/firmware
