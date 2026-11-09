@@ -5,20 +5,27 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Fill proprietary-local/ (ignored by git) with the firmware and calibration
-# files extracted from your own Lumia 1520. Nothing is downloaded and nothing
+# files extracted from your own Lumia 930. Nothing is downloaded and nothing
 # here is ever committed.
 #
 # Usage: extract-local.sh [EXTRACT_DIR]
 #
-# EXTRACT_DIR is the folder written by the martini installer / kit when it
-# extracts the phone's files (e.g. private/firmware-YYYYMMDD-HHMMSS). It must
-# contain:
+# EXTRACT_DIR is the folder written by the installer / kit when it extracts
+# the phone's files (kit/scripts/01-estrai-firmware.sh of the Lumia 1520
+# project, e.g. private/firmware-YYYYMMDD-HHMMSS). It must contain:
 #   split/                     adsp, modem, mba, wcnss, venus as .mdt/.bNN
 #   split.sha256               hashes of split/
 #   stock/Windows/system32/    qcwlan8974cfg.dat and *_cal_8974.acdb
 #   stock.sha256               hashes of stock/
+#   registro/SYSTEM, SOFTWARE  registry hives (product code check)
 # Without an argument, the newest private/firmware-* folder found in a parent
 # directory of this script is used.
+#
+# The same kit extracts the Lumia 1520 too, and a checkout may sit below the
+# 1520 project folder: the product code in the registry hives must be a
+# Lumia 930 one (RM-1045, RM-1087), otherwise nothing is copied.
+# MARTINI_SKIP_MODEL_CHECK=1 skips the check (only when the hives hold no
+# product code at all; TODO: confirm the code on a real 930 extraction).
 #
 # Run it in every checkout that is built (for example also in
 # los18/vendor/nokia/martini): the build container only sees the source tree.
@@ -55,6 +62,34 @@ echo "Source: $src"
 for f in split split.sha256 stock/Windows/system32 stock.sha256; do
 	[ -e "$src/$f" ] || { echo "Missing $src/$f" >&2; exit 1; }
 done
+
+# Product codes (RM-NNN[N]) found in the registry hives, ASCII or UTF-16LE.
+models=$(python3 -I - "$src/registro/SYSTEM" "$src/registro/SOFTWARE" <<'PY'
+import re, sys
+codes = set()
+for path in sys.argv[1:]:
+    try:
+        d = open(path, 'rb').read()
+    except OSError:
+        continue
+    codes.update(m.decode() for m in re.findall(rb'RM-[0-9]{3,4}', d))
+    codes.update(m.decode('utf-16-le')
+                 for m in re.findall(rb'R\x00M\x00-\x00(?:[0-9]\x00){3,4}', d))
+print(' '.join(sorted(codes)))
+PY
+)
+case " $models " in
+*" RM-1045 "* | *" RM-1087 "*)
+	echo "Lumia 930 product code: $models" ;;
+*)
+	if [ -z "$models" ] && [ "${MARTINI_SKIP_MODEL_CHECK:-0}" = 1 ]; then
+		echo "No product code in the registry hives, check skipped" >&2
+	else
+		echo "Not a Lumia 930 extraction (product codes: ${models:-none})." >&2
+		echo "Pass the folder extracted from the 930 as argument." >&2
+		exit 1
+	fi ;;
+esac
 
 # Verify the extraction before using it.
 (cd "$src/split" && sha256sum --quiet -c ../split.sha256)
@@ -94,11 +129,12 @@ open(sys.argv[2], 'wb').write(d[:phoff + phentsize * phnum])
 PY
 
 # WCNSS binary configuration: qcwlan8974cfg.dat has the same format as
-# Android's WCNSS_cfg.dat (magic 01 0c 03 0b), tuned for the 1520 board.
+# Android's WCNSS_cfg.dat (magic 01 0c 03 0b), tuned for the board (on the
+# 1520; same file name expected on the 930, TODO: confirm).
 sys32="$src/stock/Windows/system32"
 cp -p "$sys32/qcwlan8974cfg.dat" "$fw/wlan/prima/WCNSS_cfg.dat"
 
-# Audio calibration (ACDB) of the 1520, under the MTP names that
+# Audio calibration (ACDB) of the phone, under the MTP names that
 # libacdbloader opens on msm8974.
 for a in Bluetooth Codec General Global Handset Hdmi Headset Speaker; do
 	if [ -f "$sys32/${a}_cal_8974.acdb" ]; then
@@ -110,6 +146,8 @@ done
 (cd "$out" && find . -type f ! -name SHA256SUMS -printf '%P\n' | sort |
 	xargs sha256sum > SHA256SUMS)
 {
+	echo "device: martini"
+	echo "models: $models"
 	echo "source: $src"
 	echo "date: $(date -Iseconds)"
 } > "$out/SOURCE"
