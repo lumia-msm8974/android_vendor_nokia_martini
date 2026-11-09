@@ -17,7 +17,11 @@ Taken from the Windows Phone driver package of the Lumia 930,
 [sonic011gamer/Lumia-Drivers](https://github.com/sonic011gamer/Lumia-Drivers)
 (commit `c57daab`). The same repository's Lumia 1520 package was checked
 against the files extracted from a real 1520's Windows: all eight files are
-byte-identical. `proprietary/SOURCE` and `proprietary/SHA256SUMS` list the
+byte-identical. Compared with the official Windows Phone 8.1 FFU of the 930
+(RM-1045, 02540.00019.15236.45005), the ADSP image, the Wi-Fi configuration and
+all eight ACDB files are identical; MBA, modem, Venus and WCNSS are newer builds
+(the driver packages match what a Windows 10 Mobile 1520 runs). `proprietary/SOURCE`
+and `proprietary/SHA256SUMS` list the
 files and their hashes; they are split into `.mdt`/`.bNN` as the 3.4 kernel
 PIL loaders want them.
 
