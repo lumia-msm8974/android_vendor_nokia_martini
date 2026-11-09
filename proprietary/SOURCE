@@ -1,0 +1,3 @@
+device: martini (Windows driver package DEVICE.SOC_QC8974.MARTINI)
+models: RM-1045 (package MARTINI, not read from a phone)
+source: sonic011gamer/Lumia-Drivers c57daabd231a068646472d24a7f84d610264a065 (see README)

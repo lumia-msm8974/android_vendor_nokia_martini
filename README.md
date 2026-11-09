@@ -1,39 +1,27 @@
 # Vendor files for the Nokia Lumia 930 (martini)
 
-Proprietary files for the LineageOS 18.1 port. **This repository is public
-and contains no blob**: the files of the 930 are taken from your own phone
-and stay in a local folder ignored by git.
+Proprietary files for the LineageOS 18.1 port.
 
-**Status: not booted — the device is not available yet.** No file of a
-Lumia 930 has been extracted with this script so far.
+**Status: not booted — the device is not available yet.**
 
-This tree is a copy of
-[android_vendor_nokia_bandit](https://github.com/lumia-msm8974/android_vendor_nokia_bandit)
-(Lumia 1520, `c2a1b54`) with the names changed to martini. The bandit
-repository tracks no 1520 firmware or calibration either, so nothing of the
-1520 is carried over: every phone-specific file below must be extracted
-from a 930.
+As on the Lumia 950 XL vendor, the firmware of the 930 is included, so the
+ROM zip is self-sufficient. Phone-specific data (MAC addresses, the Wi-Fi
+calibration in DPP, modem EFS) is never here: the installer copies it from
+the phone into `persist` and the modem partitions.
 
-## Files of the 930 (local only)
+## Firmware of the 930 (`proprietary/`, committed)
 
-`extract-local.sh` fills `proprietary-local/` (in `.gitignore`) from the
-folder where the installer/kit extracted the phone's files
-(`private/firmware-YYYYMMDD-HHMMSS/`, with `split/`, `stock/`, `registro/`
-and their `.sha256` lists; the kit is `kit/scripts/01-estrai-firmware.sh`
-of the Lumia 1520 project and is not device specific). It checks the
-hashes, checks that the registry hives carry a Lumia 930 product code
-(RM-1045 or RM-1087: the same kit also extracts 1520s), copies the files
-and writes `proprietary-local/SHA256SUMS` and `SOURCE`.
+Taken from the Windows Phone driver package of the Lumia 930,
+`DEVICE.SOC_QC8974.MARTINI` (and `qcwlan8974cfg.dat` from the shared
+`OEM.SOC_QC8974.NMO` package), as collected in
+[sonic011gamer/Lumia-Drivers](https://github.com/sonic011gamer/Lumia-Drivers)
+(commit `c57daab`). The same repository's Lumia 1520 package was checked
+against the files extracted from a real 1520's Windows: all eight files are
+byte-identical. `proprietary/SOURCE` and `proprietary/SHA256SUMS` list the
+files and their hashes; they are split into `.mdt`/`.bNN` as the 3.4 kernel
+PIL loaders want them.
 
-```bash
-./extract-local.sh /path/to/private/firmware-YYYYMMDD-HHMMSS
-./extract-local.sh        # newest private/firmware-* above this folder
-```
-
-Run it in every checkout you build from (for example
-`los18/vendor/nokia/martini`): the build container only sees the source tree.
-
-| From the phone (`stock/Windows/system32`, `split/`) | Installed as |
+| Windows file | Installed as |
 |---|---|
 | `qcadsp8974.mbn` → `adsp.mdt/.bNN` | `/vendor/firmware/adsp.*` |
 | `qcdsp28974.mbn` → `modem.mdt/.bNN`, `qcdsp1v28974.mbn` → `mba.b00` + `mba.mdt` (headers) | `/vendor/firmware/modem.*`, `mba.mdt`, `mba.b00` |
@@ -42,20 +30,29 @@ Run it in every checkout you build from (for example
 | `qcwlan8974cfg.dat` (same format as `WCNSS_cfg.dat`) | `/vendor/firmware/wlan/prima/WCNSS_cfg.dat` |
 | `<Name>_cal_8974.acdb` | `/system/etc/acdbdata/MTP/MTP_<Name>_cal.acdb` |
 
-The file names are the ones of the 1520 Windows firmware (same MSM8974
-family). TODO: confirm them on a 930 MainOS/FFU; the ACPI tables (PLAT) and
-registry hives the kit saves are needed for the open items of the device
-tree (sensors, NFC, keys).
+The modem and MBA images are SSD-encrypted, as on the 1520: the kernel
+decrypts them on the phone with the keys of its own `SSD` partition.
 
-`martini-vendor.mk` lists whatever is present in `proprietary-local/`
-before the generic files, so the 930 files win. If the folder is missing the
-build still works, without them (and without Venus firmware).
+These files are the property of Microsoft, Nokia and Qualcomm and are
+redistributed as on the other Lumia Android vendor trees, only to run Android
+on the phones they were made for.
 
-Not taken from the phone by this script: the WCNSS NV
-(`WCNSS_qcom_wlan_nv.bin`; the generic one from `msm8974-common` is used, the
-phone's own calibration comes from DPP through the installer), MAC and
-Bluetooth addresses, EFS/modem data. Per-device data is never committed
-here.
+## Files from your own phone (`proprietary-local/`, optional)
+
+`extract-local.sh` fills `proprietary-local/` (in `.gitignore`, same layout)
+from the folder the installer writes with its "Firmware from Windows" step
+(`private/firmware-YYYYMMDD-HHMMSS/`). It checks the hashes and the Lumia 930
+product code in the registry hives (RM-1045, RM-1087). `martini-vendor.mk`
+lists `proprietary-local/` first, so a phone's own files win over the
+committed ones (useful if a firmware version on a phone differs).
+
+```bash
+./extract-local.sh /path/to/private/firmware-YYYYMMDD-HHMMSS
+```
+
+Not included anywhere: the WCNSS NV (`WCNSS_qcom_wlan_nv.bin`; the generic one
+from `msm8974-common` is used, the phone's own calibration comes from DPP
+through the installer), MAC and Bluetooth addresses, EFS/modem data.
 
 ## Generic MSM8974 blobs
 
@@ -66,6 +63,10 @@ out.
 
 ## Credits
 
+- Microsoft, Nokia and Qualcomm — the Lumia 930 firmware and calibration.
+- sonic011gamer, [Lumia-Drivers](https://github.com/sonic011gamer/Lumia-Drivers)
+  — collection of the Lumia Windows Phone driver packages the firmware is
+  taken from.
 - [TheMuppets](https://github.com/TheMuppets) — `proprietary_vendor_oppo`
   (generic MSM8974 blobs).
 - [LineageOS](https://github.com/LineageOS) — `android_device_oppo_msm8974-common`

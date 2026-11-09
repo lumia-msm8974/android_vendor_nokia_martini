@@ -6,33 +6,44 @@
 
 # Nokia Lumia 930 (martini) proprietary files.
 #
-# 1. Files of the 930 itself (firmware, Wi-Fi config, audio calibration)
-#    come from the user's own phone (its Windows MainOS). extract-local.sh copies them into
-#    proprietary-local/, which is ignored by git: they are never committed.
+# 1. Firmware and calibration of the 930 (ADSP, modem + MBA, WCNSS, Venus,
+#    Wi-Fi config, audio ACDB), as on the Lumia 950 XL vendor: the ROM zip is
+#    self-sufficient. Two places, same layout:
+#      proprietary-local/  extracted by extract-local.sh from the user's own
+#                          phone; ignored by git; listed first, so it wins
+#      proprietary/        committed, from the Windows driver package
+#                          DEVICE.SOC_QC8974.MARTINI (see README and SOURCE)
 #    The tree mirrors the install paths:
-#      proprietary-local/vendor/...  -> $(TARGET_COPY_OUT_VENDOR)/...
-#      proprietary-local/system/...  -> $(TARGET_COPY_OUT_SYSTEM)/...
-#    Without proprietary-local/ the build still works, without these files.
-#    They are listed first: PRODUCT_COPY_FILES keeps the first entry for a
-#    destination, so they win over the generic files of the device tree.
+#      .../vendor/...  -> $(TARGET_COPY_OUT_VENDOR)/...
+#      .../system/...  -> $(TARGET_COPY_OUT_SYSTEM)/...
+#    PRODUCT_COPY_FILES keeps the first entry for a destination, so these win
+#    over the generic files of the device tree. Phone-specific data (MAC
+#    addresses, Wi-Fi calibration from DPP, modem EFS) is never here: the
+#    installer copies it from the phone into persist and the modem partitions.
 #
 # 2. Generic MSM8974 Android blobs (Adreno, QMI/RIL, location, ...) come
 #    from TheMuppets' proprietary_vendor_oppo (msm8974-common), minus the
 #    OnePlus One firmware that does not belong on the 930.
 
-MARTINI_LOCAL_PATH := vendor/nokia/martini/proprietary-local
+define martini-proprietary
+$(foreach f,$(filter $(1)/vendor/%,$(2)), \
+    $(f):$(TARGET_COPY_OUT_VENDOR)/$(patsubst $(1)/vendor/%,%,$(f))) \
+$(foreach f,$(filter $(1)/system/%,$(2)), \
+    $(f):$(TARGET_COPY_OUT_SYSTEM)/$(patsubst $(1)/system/%,%,$(f)))
+endef
 
-MARTINI_LOCAL_FILES := $(wildcard \
-    $(MARTINI_LOCAL_PATH)/vendor/firmware/*.mdt \
-    $(MARTINI_LOCAL_PATH)/vendor/firmware/*.b[0-9][0-9] \
-    $(MARTINI_LOCAL_PATH)/vendor/firmware/wlan/prima/* \
-    $(MARTINI_LOCAL_PATH)/system/etc/acdbdata/MTP/*.acdb)
+martini-files = $(wildcard \
+    $(1)/vendor/firmware/*.mdt \
+    $(1)/vendor/firmware/*.b[0-9][0-9] \
+    $(1)/vendor/firmware/wlan/prima/* \
+    $(1)/system/etc/acdbdata/MTP/*.acdb)
+
+MARTINI_LOCAL_PATH := vendor/nokia/martini/proprietary-local
+MARTINI_PROPRIETARY_PATH := vendor/nokia/martini/proprietary
 
 PRODUCT_COPY_FILES += \
-    $(foreach f,$(filter $(MARTINI_LOCAL_PATH)/vendor/%,$(MARTINI_LOCAL_FILES)), \
-        $(f):$(TARGET_COPY_OUT_VENDOR)/$(patsubst $(MARTINI_LOCAL_PATH)/vendor/%,%,$(f))) \
-    $(foreach f,$(filter $(MARTINI_LOCAL_PATH)/system/%,$(MARTINI_LOCAL_FILES)), \
-        $(f):$(TARGET_COPY_OUT_SYSTEM)/$(patsubst $(MARTINI_LOCAL_PATH)/system/%,%,$(f)))
+    $(call martini-proprietary,$(MARTINI_LOCAL_PATH),$(call martini-files,$(MARTINI_LOCAL_PATH))) \
+    $(call martini-proprietary,$(MARTINI_PROPRIETARY_PATH),$(call martini-files,$(MARTINI_PROPRIETARY_PATH)))
 
 # Generic MSM8974 blobs. Venus (video codec) firmware of the OnePlus One is
 # dropped: the 930 uses its own qcvss8974 image (venus.* above).
