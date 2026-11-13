@@ -14,9 +14,9 @@
 # the phone's files (kit/scripts/01-estrai-firmware.sh of the Lumia 1520
 # project, e.g. private/firmware-YYYYMMDD-HHMMSS). It must contain:
 #   split/                     adsp, modem, mba, wcnss, venus as .mdt/.bNN
-#   split.sha256               hashes of split/
 #   stock/Windows/system32/    qcwlan8974cfg.dat and *_cal_8974.acdb
-#   stock.sha256               hashes of stock/
+#   SHA256SUMS                 hashes of the whole folder (installer), or
+#   split.sha256, stock.sha256 hashes of split/ and stock/ (driver script)
 #   registro/SYSTEM, SOFTWARE  registry hives (product code check)
 # Without an argument, the newest private/firmware-* folder found in a parent
 # directory of this script is used.
@@ -59,9 +59,13 @@ fi
 src=$(cd -- "$src" && pwd)
 echo "Source: $src"
 
-for f in split split.sha256 stock/Windows/system32 stock.sha256; do
+for f in split stock/Windows/system32; do
 	[ -e "$src/$f" ] || { echo "Missing $src/$f" >&2; exit 1; }
 done
+if [ ! -f "$src/SHA256SUMS" ] && { [ ! -f "$src/split.sha256" ] || [ ! -f "$src/stock.sha256" ]; }; then
+	echo "Missing $src/SHA256SUMS (or split.sha256 and stock.sha256)" >&2
+	exit 1
+fi
 
 # Product codes (RM-NNN[N]) found in the registry hives, ASCII or UTF-16LE.
 models=$(python3 -I - "$src/registro/SYSTEM" "$src/registro/SOFTWARE" <<'PY'
@@ -92,8 +96,12 @@ case " $models " in
 esac
 
 # Verify the extraction before using it.
-(cd "$src/split" && sha256sum --quiet -c ../split.sha256)
-(cd "$src/stock" && sha256sum --quiet -c ../stock.sha256)
+if [ -f "$src/SHA256SUMS" ]; then
+	(cd "$src" && sha256sum --quiet -c SHA256SUMS)
+else
+	(cd "$src/split" && sha256sum --quiet -c ../split.sha256)
+	(cd "$src/stock" && sha256sum --quiet -c ../stock.sha256)
+fi
 echo "Hashes OK"
 
 rm -rf "$out"
