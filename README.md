@@ -69,8 +69,9 @@ through the installer), MAC and Bluetooth addresses, EFS/modem data.
 - `libchromatix_karma_*.so`: the Karma module tuning (colour matrices, white
   balance references, colour shading) in the chromatix layout of that daemon.
 - `libchromatix_skyphd_*.so`: the same for the Skype_HD front module.
-- `lumia-ois-10454107.bin`: firmware, init and mode blocks of the rear focus /
-  OIS controller for module 0x4541 revision 7, loaded by the kernel actuator.
+- `lumia-ois-104541NN.bin`: firmware, init and mode blocks of the rear focus /
+  OIS controller for each Karma module revision (0x4541 rev 01-07, 10-12); the
+  kernel actuator loads the one of the module it reads.
 
 ## Generic MSM8974 blobs
 
