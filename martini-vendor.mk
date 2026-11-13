@@ -21,7 +21,15 @@
 #    addresses, Wi-Fi calibration from DPP, modem EFS) is never here: the
 #    installer copies it from the phone into persist and the modem partitions.
 #
-# 2. Generic MSM8974 Android blobs (Adreno, QMI/RIL, location, ...) come
+# 2. Camera: the 2014 mm-camera2 daemon, its modules and the C2D/CPP/JPEG
+#    blobs of the OnePlus One (TheMuppets' proprietary_vendor_oneplus, bacon,
+#    lineage-18.1), with the sensor list of libmmcamera2_sensor_modules.so
+#    renamed to karma/skyphd (kit/camera/patch-sensor-list-bacon.py in the
+#    workspace); the Karma module tuning (libchromatix_karma_*) and the
+#    lumia-ois-<module>.bin focus/OIS firmware of the rear module. The sensor
+#    and actuator plug-ins and the HAL are built from source.
+#
+# 3. Generic MSM8974 Android blobs (Adreno, QMI/RIL, location, ...) come
 #    from TheMuppets' proprietary_vendor_oppo (msm8974-common), minus the
 #    OnePlus One firmware that does not belong on the 930.
 
@@ -36,6 +44,10 @@ martini-files = $(wildcard \
     $(1)/vendor/firmware/*.mdt \
     $(1)/vendor/firmware/*.b[0-9][0-9] \
     $(1)/vendor/firmware/wlan/prima/* \
+    $(1)/vendor/firmware/cpp_firmware_*.fw \
+    $(1)/vendor/firmware/lumia-ois-*.bin \
+    $(1)/vendor/bin/mm-qcamera-daemon \
+    $(1)/vendor/lib/*.so \
     $(1)/system/etc/acdbdata/MTP/*.acdb)
 
 MARTINI_LOCAL_PATH := vendor/nokia/martini/proprietary-local

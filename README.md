@@ -58,6 +58,19 @@ Not included anywhere: the WCNSS NV (`WCNSS_qcom_wlan_nv.bin`; the generic one
 from `msm8974-common` is used, the phone's own calibration comes from DPP
 through the installer), MAC and Bluetooth addresses, EFS/modem data.
 
+## Camera (`proprietary/vendor/{bin,lib,firmware}`)
+
+- The 2014 mm-camera2 stack of the OnePlus One (`mm-qcamera-daemon`, the
+  `libmmcamera2_*` modules, C2D/CPP/JPEG libraries, `cpp_firmware_v1_2_0.fw`,
+  the DW9714 AF tuning libraries), from TheMuppets' `proprietary_vendor_oneplus`
+  (bacon, lineage-18.1). Only `libmmcamera2_sensor_modules.so` is changed: its
+  sensor list is renamed to `karma` (rear) and `skyphd` (front), so the daemon
+  loads the plug-ins built from `camera-sensors/` of the device tree.
+- `libchromatix_karma_*.so`: the Karma module tuning (colour matrices, white
+  balance references, colour shading) in the chromatix layout of that daemon.
+- `lumia-ois-10454107.bin`: firmware, init and mode blocks of the rear focus /
+  OIS controller for module 0x4541 revision 7, loaded by the kernel actuator.
+
 ## Generic MSM8974 blobs
 
 Adreno, QMI/RIL, location and the other common blobs come from TheMuppets
@@ -72,7 +85,8 @@ out.
   — collection of the Lumia Windows Phone driver packages the firmware is
   taken from.
 - [TheMuppets](https://github.com/TheMuppets) — `proprietary_vendor_oppo`
-  (generic MSM8974 blobs).
+  (generic MSM8974 blobs) and `proprietary_vendor_oneplus` (bacon camera stack).
+- OnePlus and OPPO — the OnePlus One / Find 7 camera stack.
 - [LineageOS](https://github.com/LineageOS) — `android_device_oppo_msm8974-common`
   (layout of the blob lists, Wi-Fi/audio configuration).
 - [KorelisLabs/lumia-1520-mainline](https://github.com/KorelisLabs/lumia-1520-mainline)
