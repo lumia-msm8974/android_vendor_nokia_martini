@@ -68,6 +68,7 @@ through the installer), MAC and Bluetooth addresses, EFS/modem data.
   loads the plug-ins built from `camera-sensors/` of the device tree.
 - `libchromatix_karma_*.so`: the Karma module tuning (colour matrices, white
   balance references, colour shading) in the chromatix layout of that daemon.
+- `libchromatix_skyphd_*.so`: the same for the Skype_HD front module.
 - `lumia-ois-10454107.bin`: firmware, init and mode blocks of the rear focus /
   OIS controller for module 0x4541 revision 7, loaded by the kernel actuator.
 
